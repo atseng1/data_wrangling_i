@@ -9,8 +9,9 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
+library(readxl)
+library(haven)
 ```
-
 
 ## Load in the litters dataset
 
@@ -32,3 +33,74 @@ pups_data = read_csv(file = "./data/FAS_pups.csv")
 pups_data = janitor::clean_names(pups_data)
 ```
 
+## To skim summary statistics
+skimr::skim(litters_data)
+
+## If we wanted to skip the first 50 lines of data and not assume the first row are variable names:
+```{r}
+litters_data = read_csv(file = "./data/FAS_litters.csv",
+  skip = 10, col_names = FALSE)
+## Parsed: trying to guess what variable type each variable is
+## What read_csv does it try to guess what variable type each type is based on skimming the data
+## "double" is computer jargon for number
+```
+
+## Parsing columns
+```{r}
+litters_data = read_csv(file = "./data/FAS_litters.csv",
+  col_types = cols(
+    Group = col_character(),
+    `Litter Number` = col_character(),
+    `GD0 weight` = col_double(),
+    `GD18 weight` = col_double(),
+    `GD of Birth` = col_integer(),
+    `Pups born alive` = col_integer(),
+    `Pups dead @ birth` = col_integer(),
+    `Pups survive` = col_integer()
+  )
+)
+
+## We see that we get the same column format when parsing and when not parsing
+## In R, valid column names cannot include spaces. For columns that do include spaces, need to use back ticks ``
+```
+
+## Reading in an Excel file
+```{r}
+mlb11_data = read_excel("./data/mlb11.xlsx", n_max = 20)
+head(mlb11_data, 5)
+
+## This works too
+mlb11_data_2 = read_excel("data/mlb11.xlsx", n_max = 20)
+
+## This doesn't work
+mlb11_data_2 = read_excel("mlb11.xlsx", n_max = 20)
+```
+
+## Reading in a SAS file
+```{r}
+pulse_data = read_sas("./data/public_pulse_data.sas7bdat")
+```
+
+## To pull a variable from a data frame:
+pull(data_frame, variable_name)
+## read_csv is bringing in data and making it a tibble; read.csv is making it a data frame
+
+## If we try to use read.csv:
+litters_data = read.csv(file = "./data/FAS_litters.csv")
+class(pull(litters_data, Group))
+## We get an error that object 'Group' not found
+
+## Need to use read_csv:
+litters_data = read_csv(file = "./data/FAS_litters.csv")
+class(pull(litters_data, Group))
+## "character" variable
+
+```{r}
+mlb11_data_subset = read_excel(
+  path = "./data/mlb11.xlsx",
+  range = "A1:D7"
+)
+
+## to export a .csv file
+write_csv(mlb11_data_subset, path = "./data/mlb_subset.csv")
+```
