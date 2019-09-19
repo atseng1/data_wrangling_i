@@ -22,13 +22,13 @@ pups_data = read_csv("./data/FAS_pups.csv")
 pups_data = janitor::clean_names(pups_data)
 
 ```
-# R doesn't know about the "group" variable inside of the litters dataset "litters_data". We need to tell R where to look: "pull(litters_data, group).
+R doesn't know about the "group" variable inside of the litters dataset "litters_data". We need to tell R where to look: "pull(litters_data, group).
 
 
 
 ## Selecting
 
-# If we only want to select certain columns (variables) from the dataset "litters_data", then use select():
+If we only want to select certain columns (variables) from the dataset "litters_data", then use select():
 ```{r}
 select(litters_data, group, litter_number)
 
@@ -55,14 +55,13 @@ select(litters_data, GROUP = group, litter_number)
 rename(litters_data, GROUP = group)
 
 ```
-# Note that with selecting, we aren't making any changes to the existing dataframe unless we make a new df. 
+Note that with selecting, we aren't making any changes to the existing dataframe unless we make a new df. 
 
 
 
 ## Filtering
 
-# If we only want to select certain columns (variables) from the dataset "litters_data", then use select():
-
+If we only want to select certain columns (variables) from the dataset "litters_data", then use select():
 ```{r}
 filter(litters_data, group == "Con7")
 
@@ -102,9 +101,9 @@ drop_na(litters_data, gd0_weight)
 
 
 
-## Mutate
+## Mutating
 
-# Sometimes you need to select columns; sometimes you need to change them or create new ones. You can do this using mutate:
+Sometimes you need to select columns; sometimes you need to change them or create new ones. You can do this using mutate:
 ```{r}
 mutate(
   litters_data,
@@ -118,7 +117,7 @@ mutate(
 
 
 
-## Arrange
+## Arranging
 
 ```{r}
 arrange(litters_data, group, pups_born_alive)
@@ -133,5 +132,80 @@ arrange(litters_data, pups_born_alive, gd0_weight)
 head(arrange(litters_data, group, pups_born_alive), 10)
 ```
 
+## Piping %>%
+
+```{r}
+# Most ineffcient way to manipulate data (horrible, don't do this):
+litters_data_raw = read_csv("./data/FAS_litters.csv",
+  col_types = "ccddiiii")
+litters_data_clean_names = janitor::clean_names(litters_data_raw)
+litters_data_selected_cols = select(litters_data_clean_names, -pups_survive)
+litters_data_with_vars = 
+  mutate(
+    litters_data_selected_cols, 
+    wt_gain = gd18_weight - gd0_weight,
+    group = str_to_lower(group))
+litters_data_with_vars_without_missing = 
+  drop_na(litters_data_with_vars, wt_gain)
+litters_data_with_vars_without_missing
+
+# Nested approach (not tidy, don't do this):
+litters_data_clean = 
+  drop_na(
+    mutate(
+      select(
+        janitor::clean_names(
+          read_csv("./data/FAS_litters.csv", col_types = "ccddiiii")
+          ), 
+      -pups_survive
+      ),
+    wt_gain = gd18_weight - gd0_weight,
+    group = str_to_lower(group)
+    ),
+  wt_gain
+  )
+
+```
+
+```{r}
+# Piping - do this! Hotkey is shift + command + M
+litters_data = 
+  read_csv("./data/FAS_litters.csv") %>%
+  janitor::clean_names() %>%
+  select(-pups_survive) %>%
+  mutate(
+    wt_gain = gd18_weight - gd0_weight,
+    group = str_to_lower(group)) %>% 
+  drop_na(wt_gain)
+
+litters_data
+# We can see that there is a "wt_gain" variable now added to the end of the dataset
+```
+
+```{r, eval = FALSE}
+litters_data %>% view()
+
+litters_data %>% pull(gd0_weight) %>% mean
+```
+
+```{r}
+# Let's take a closer look at what is going in the piping series:
+  # Reading the data into R:
+  # read_csv("./data/FAS_litters.csv") %>%
+  
+  # Cleaning names so there are no spaces (underscores instead) in the column names:
+  # janitor::clean_names() %>%
+  
+  # Selecting all columns execept for "pups_survive" in the default order:
+  # select(-pups_survive) %>%
+  
+  # Creating a new variable "wt_gain" from two old variables in the dataset, changing group names to all lowercase:
+  # mutate(
+  #  wt_gain = gd18_weight - gd0_weight,
+  #  group = str_to_lower(group)) %>% 
+
+  # Dropping any observations that have missing "wt_gain" values:
+  # drop_na(wt_gain)
+```
 
 

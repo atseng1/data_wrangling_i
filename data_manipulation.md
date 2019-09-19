@@ -41,11 +41,14 @@ pups_data = read_csv("./data/FAS_pups.csv")
 pups_data = janitor::clean_names(pups_data)
 ```
 
-# R doesn’t know about the “group” variable inside of the litters dataset “litters\_data”. We need to tell R where to look: "pull(litters\_data, group).
+R doesn’t know about the “group” variable inside of the litters dataset
+“litters\_data”. We need to tell R where to look: "pull(litters\_data,
+group).
 
 ## Selecting
 
-# If we only want to select certain columns (variables) from the dataset “litters\_data”, then use select():
+If we only want to select certain columns (variables) from the dataset
+“litters\_data”, then use select():
 
 ``` r
 select(litters_data, group, litter_number)
@@ -227,11 +230,13 @@ rename(litters_data, GROUP = group)
     ## # … with 39 more rows, and 2 more variables: pups_dead_birth <dbl>,
     ## #   pups_survive <dbl>
 
-# Note that with selecting, we aren’t making any changes to the existing dataframe unless we make a new df.
+Note that with selecting, we aren’t making any changes to the existing
+dataframe unless we make a new df.
 
 ## Filtering
 
-# If we only want to select certain columns (variables) from the dataset “litters\_data”, then use select():
+If we only want to select certain columns (variables) from the dataset
+“litters\_data”, then use select():
 
 ``` r
 filter(litters_data, group == "Con7")
@@ -499,9 +504,10 @@ drop_na(litters_data, gd0_weight)
     ## # … with 24 more rows, and 2 more variables: pups_dead_birth <dbl>,
     ## #   pups_survive <dbl>
 
-## Mutate
+## Mutating
 
-# Sometimes you need to select columns; sometimes you need to change them or create new ones. You can do this using mutate:
+Sometimes you need to select columns; sometimes you need to change them
+or create new ones. You can do this using mutate:
 
 ``` r
 mutate(
@@ -532,7 +538,7 @@ mutate(
 # We modified the first letter of the "group" variable names from upper case to lower case
 ```
 
-## Arrange
+## Arranging
 
 ``` r
 arrange(litters_data, group, pups_born_alive)
@@ -618,3 +624,129 @@ head(arrange(litters_data, group, pups_born_alive), 10)
     ##  9 Con8  #1/6/2/2/95-2       NA          NA            20               7
     ## 10 Con8  #3/6/2/2/95-3       NA          NA            20               7
     ## # … with 2 more variables: pups_dead_birth <dbl>, pups_survive <dbl>
+
+## Piping %\>%
+
+``` r
+# Most ineffcient way to manipulate data (horrible, don't do this):
+litters_data_raw = read_csv("./data/FAS_litters.csv",
+  col_types = "ccddiiii")
+litters_data_clean_names = janitor::clean_names(litters_data_raw)
+litters_data_selected_cols = select(litters_data_clean_names, -pups_survive)
+litters_data_with_vars = 
+  mutate(
+    litters_data_selected_cols, 
+    wt_gain = gd18_weight - gd0_weight,
+    group = str_to_lower(group))
+litters_data_with_vars_without_missing = 
+  drop_na(litters_data_with_vars, wt_gain)
+litters_data_with_vars_without_missing
+```
+
+    ## # A tibble: 31 x 8
+    ##    group litter_number gd0_weight gd18_weight gd_of_birth pups_born_alive
+    ##    <chr> <chr>              <dbl>       <dbl>       <int>           <int>
+    ##  1 con7  #85                 19.7        34.7          20               3
+    ##  2 con7  #1/2/95/2           27          42            19               8
+    ##  3 con7  #5/5/3/83/3-3       26          41.4          19               6
+    ##  4 con7  #5/4/2/95/2         28.5        44.1          19               5
+    ##  5 mod7  #59                 17          33.4          19               8
+    ##  6 mod7  #103                21.4        42.1          19               9
+    ##  7 mod7  #3/82/3-2           28          45.9          20               5
+    ##  8 mod7  #5/3/83/5-2         22.6        37            19               5
+    ##  9 mod7  #106                21.7        37.8          20               5
+    ## 10 mod7  #94/2               24.4        42.9          19               7
+    ## # … with 21 more rows, and 2 more variables: pups_dead_birth <int>,
+    ## #   wt_gain <dbl>
+
+``` r
+# Nested approach (not tidy, don't do this):
+litters_data_clean = 
+  drop_na(
+    mutate(
+      select(
+        janitor::clean_names(
+          read_csv("./data/FAS_litters.csv", col_types = "ccddiiii")
+          ), 
+      -pups_survive
+      ),
+    wt_gain = gd18_weight - gd0_weight,
+    group = str_to_lower(group)
+    ),
+  wt_gain
+  )
+```
+
+``` r
+# Piping - do this! Hotkey is shift + command + M
+litters_data = 
+  read_csv("./data/FAS_litters.csv") %>%
+  janitor::clean_names() %>%
+  select(-pups_survive) %>%
+  mutate(
+    wt_gain = gd18_weight - gd0_weight,
+    group = str_to_lower(group)) %>% 
+  drop_na(wt_gain)
+```
+
+    ## Parsed with column specification:
+    ## cols(
+    ##   Group = col_character(),
+    ##   `Litter Number` = col_character(),
+    ##   `GD0 weight` = col_double(),
+    ##   `GD18 weight` = col_double(),
+    ##   `GD of Birth` = col_double(),
+    ##   `Pups born alive` = col_double(),
+    ##   `Pups dead @ birth` = col_double(),
+    ##   `Pups survive` = col_double()
+    ## )
+
+``` r
+litters_data
+```
+
+    ## # A tibble: 31 x 8
+    ##    group litter_number gd0_weight gd18_weight gd_of_birth pups_born_alive
+    ##    <chr> <chr>              <dbl>       <dbl>       <dbl>           <dbl>
+    ##  1 con7  #85                 19.7        34.7          20               3
+    ##  2 con7  #1/2/95/2           27          42            19               8
+    ##  3 con7  #5/5/3/83/3-3       26          41.4          19               6
+    ##  4 con7  #5/4/2/95/2         28.5        44.1          19               5
+    ##  5 mod7  #59                 17          33.4          19               8
+    ##  6 mod7  #103                21.4        42.1          19               9
+    ##  7 mod7  #3/82/3-2           28          45.9          20               5
+    ##  8 mod7  #5/3/83/5-2         22.6        37            19               5
+    ##  9 mod7  #106                21.7        37.8          20               5
+    ## 10 mod7  #94/2               24.4        42.9          19               7
+    ## # … with 21 more rows, and 2 more variables: pups_dead_birth <dbl>,
+    ## #   wt_gain <dbl>
+
+``` r
+# We can see that there is a "wt_gain" variable now added to the end of the dataset
+```
+
+``` r
+litters_data %>% view()
+
+litters_data %>% pull(gd0_weight) %>% mean
+```
+
+``` r
+# Let's take a closer look at what is going in the piping series:
+  # Reading the data into R:
+  # read_csv("./data/FAS_litters.csv") %>%
+  
+  # Cleaning names so there are no spaces (underscores instead) in the column names:
+  # janitor::clean_names() %>%
+  
+  # Selecting all columns execept for "pups_survive" in the default order:
+  # select(-pups_survive) %>%
+  
+  # Creating a new variable "wt_gain" from two old variables in the dataset, changing group names to all lowercase:
+  # mutate(
+  #  wt_gain = gd18_weight - gd0_weight,
+  #  group = str_to_lower(group)) %>% 
+
+  # Dropping any observations that have missing "wt_gain" values:
+  # drop_na(wt_gain)
+```
