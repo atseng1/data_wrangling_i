@@ -9,8 +9,95 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
-library(readxl)
-library(haven)
+library(dplyr)
 ```
 
-## 
+## Import datasets
+
+```{r}
+litters_data = read_csv("./data/FAS_litters.csv")
+litters_data = janitor::clean_names(litters_data)
+
+pups_data = read_csv("./data/FAS_pups.csv")
+pups_data = janitor::clean_names(pups_data)
+
+```
+# R doesn't know about the "group" variable inside of the litters dataset "litters_data". We need to tell R where to look: "pull(litters_data, group).
+
+
+## Selecting
+
+# If we only want to select certain columns (variables) from the dataset "litters_data", then use select():
+```{r}
+select(litters_data, group, litter_number)
+
+select(litters_data, group, litter_number, gd0_weight)
+
+# Can use a helper function like "starts_with" to tell R to select all columns from the dataset that start with "pups":
+select(litters_data, group, litter_number, gd0_weight, starts_with("pups"))
+
+select(litters_data, litter_number, group, gd0_weight)
+
+# Tells R that we want litters_number, then group, then everything else to come after:
+select(litters_data, litter_number, group, everything())
+
+# Tells R that we want all the columns in the dataset selected EXCEPT for group (denoted by the -):
+select(litters_data, -group)
+
+# Keeps litter_number, then extract every column from my dataset between gd0_weight and pups_born_alive:
+select(litters_data, litter_number, gd0_weight:pups_born_alive)
+
+# We can rename column names with the select function too (but again, this isn't permanent):
+select(litters_data, GROUP = group, litter_number)
+
+# We can also rename column names with the rename() function (this also is not permanent!):
+rename(litters_data, GROUP = group)
+
+```
+# Note that with selecting, we aren't making any changes to the existing dataframe unless we make a new df. 
+
+
+## Filtering
+
+# If we only want to select certain columns (variables) from the dataset "litters_data", then use select():
+
+```{r}
+filter(litters_data, group == "Con7")
+
+filter(litters_data, gd_of_birth == 20)
+
+filter(litters_data, gd_of_birth < 20)
+
+filter(litters_data, gd_of_birth >= 20)
+
+filter(litters_data, pups_born_alive < 6)
+
+filter(litters_data, pups_born_alive < 6, group == "Con7")
+
+# We want to filter for pups that survive that aren't equal to 4:
+filter(litters_data, pups_survive != 4)
+
+# Can use not and have the function inside the ():
+# !(pups_survive == 4)
+
+# If we want to filter for "Con7" or "Mod8":
+filter(litters_data, group == "Con7" | group == "Mod8")
+# This is equivalent to the or function above, but Prof. prefers this one: 
+filter(litters_data, group %in% c("Con7", "Mod8"))
+
+filter(litters_data, pups_born_alive >= 4, pups_born_alive <= 6)
+
+# If we want to filter for groups where the sum of gd0_weight and gd18_weight is less than 70:
+filter(litters_data, gd0_weight + gd18_weight < 70)
+
+# DO NOT DO THIS:
+filter(litters_data, !is.na(gd0_weight))
+
+# Instead, do this (tells R that we want to drop the missing values for "gd0_weight" in the "litters_data" dataframe:
+drop_na(litters_data, gd0_weight)
+
+```
+
+
+
+
