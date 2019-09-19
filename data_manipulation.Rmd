@@ -25,6 +25,7 @@ pups_data = janitor::clean_names(pups_data)
 # R doesn't know about the "group" variable inside of the litters dataset "litters_data". We need to tell R where to look: "pull(litters_data, group).
 
 
+
 ## Selecting
 
 # If we only want to select certain columns (variables) from the dataset "litters_data", then use select():
@@ -55,6 +56,7 @@ rename(litters_data, GROUP = group)
 
 ```
 # Note that with selecting, we aren't making any changes to the existing dataframe unless we make a new df. 
+
 
 
 ## Filtering
@@ -98,6 +100,38 @@ drop_na(litters_data, gd0_weight)
 
 ```
 
+
+
+## Mutate
+
+# Sometimes you need to select columns; sometimes you need to change them or create new ones. You can do this using mutate:
+```{r}
+mutate(
+  litters_data,
+  wt_gain = gd18_weight - gd0_weight,
+  group = str_to_lower(group)
+)
+
+# "wt_gain" variable is a new variable created from old variables
+# We modified the first letter of the "group" variable names from upper case to lower case
+```
+
+
+
+## Arrange
+
+```{r}
+arrange(litters_data, group, pups_born_alive)
+# R has put our dataset in order based on the number of pups born alive
+
+arrange(litters_data, group, desc(pups_born_alive))
+# R has put our dataset in descending order based on the number of pups born alive
+
+arrange(litters_data, pups_born_alive, gd0_weight)
+# Within the litters of pups born alive, the groups are also sorted by their gd0_weight
+
+head(arrange(litters_data, group, pups_born_alive), 10)
+```
 
 
 
