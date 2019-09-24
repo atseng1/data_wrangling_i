@@ -11,3 +11,41 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(dplyr)
 ```
+
+## Wide to long
+
+```{r}
+pulse_data = 
+  haven::read_sas("./data/public_pulse_data.sas7bdat") %>%
+  janitor::clean_names()
+
+pulse_data
+
+pivot_longer(
+  pulse_data,
+  bdi_score_bl:bdi_score_12m,
+  names_to = "visit",
+  values_to = "bdi"
+)
+```
+"names_to": The columns that I currently have are going to become their own variable "visit".
+"values_to": Then take the values from those columns and put them their new column.
+"pivot_longer" results in two new columns; wide to long format.
+
+
+We didn't like that pivot_longer was a separate action from the haven and janitor action; let's pipe it all together: 
+```{r}
+pulse_data = 
+  haven::read_sas("./data/public_pulse_data.sas7bdat") %>%
+  janitor::clean_names() %>%
+  pivot_longer(
+  bdi_score_bl:bdi_score_12m,
+  names_to = "visit",
+  names_prefix = "bdi_score_",
+  values_to = "bdi"
+) %>% 
+  mutate(
+    visit = recode(visit, "bl" = "00m")
+  )
+```
+
