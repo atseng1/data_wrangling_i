@@ -74,3 +74,56 @@ pulse_data =
     visit = recode(visit, "bl" = "00m")
   )
 ```
+
+## Separate in litters
+
+``` r
+litters_data = 
+  read_csv("./data/FAS_litters.csv", col_types = "ccddiiii") %>% 
+  janitor::clean_names() %>%
+  separate(group, into = c("dose", "day_of_tx"), sep = 3) %>%
+  mutate(
+    dose = str_to_lower(dose),
+    wt_gain = gd18_weight - gd0_weight) %>%
+  arrange(litter_number)
+
+litters_data
+```
+
+    ## # A tibble: 49 x 10
+    ##    dose  day_of_tx litter_number gd0_weight gd18_weight gd_of_birth
+    ##    <chr> <chr>     <chr>              <dbl>       <dbl>       <int>
+    ##  1 con   7         #1/2/95/2           27          42            19
+    ##  2 con   7         #1/5/3/83/3-…       NA          NA            20
+    ##  3 con   8         #1/6/2/2/95-2       NA          NA            20
+    ##  4 mod   7         #1/82/3-2           NA          NA            19
+    ##  5 low   8         #100                20          39.2          20
+    ##  6 low   7         #101                23.8        42.7          20
+    ##  7 low   7         #102                22.6        43.3          20
+    ##  8 mod   7         #103                21.4        42.1          19
+    ##  9 mod   7         #106                21.7        37.8          20
+    ## 10 low   7         #107                22.6        42.4          20
+    ## # … with 39 more rows, and 4 more variables: pups_born_alive <int>,
+    ## #   pups_dead_birth <int>, pups_survive <int>, wt_gain <dbl>
+
+“separate” is useful for separating one column into two columns. Where
+separate gets tricky is telling R WHERE to split something –\> we will
+use “sep = character \# where we want to separate at”. This creates two
+new columns in the order you told R at the charcter \# indicated.
+
+## Go untidy. We can deliberately UNtidy something using “pivot\_wider”:
+
+``` r
+analysis_result = tibble(
+  group = c("treatment", "treatment", "placebo", "placebo"),
+  time = c("pre", "post", "pre", "post"),
+  mean = c(4, 8, 3.5, 4)
+) %>% view
+
+pivot_wider(  
+  analysis_result, 
+  names_from = "time", 
+  values_from = "mean") %>% view
+```
+
+##
