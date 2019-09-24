@@ -1,0 +1,13 @@
+---
+title: "Tidy Data"
+author: "Ashley Tseng"
+date: "9/24/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(dplyr)
+```
