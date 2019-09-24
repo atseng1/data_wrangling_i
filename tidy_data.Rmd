@@ -110,7 +110,40 @@ lotr_tidy =
 ```
 
 
+## Joining datasets. We want to first read in our datasets. Recoding the sex variable from numerical to their categories in the pups dataset.
+
+```{r}
+pup_data = 
+  read_csv("./data/FAS_pups.csv", col_types = "ciiiii") %>% 
+  janitor::clean_names() %>%
+  mutate(sex = recode(sex, `1` = "male", `2` = "female")) %>% view
+
+litter_data = 
+  read_csv("./data/FAS_litters.csv", col_types = "ccddiiii") %>%
+  janitor::clean_names() %>%
+  select(-pups_survive) %>%
+  mutate(
+    wt_gain = gd18_weight - gd0_weight,
+    group = str_to_lower(group))
+```
+
+Try to join these datasets!
+
+We think that the pup dataset has all the variables that I need, so I want to pull everything from litters to the pup dataset. Take everything that I see in the pup dataset, match it to its corresponding litter number in the litter data, and add it to the pup dataset.
+```{r}
+fas_data = 
+  left_join(pup_data, litter_data, by = "litter_number") %>% view
+```
+The first two pups are from the same litter number so we see that all the columns pulled from "litter_data" are exactly the same. This is exactly what we expect, so this is good!
+
+We could hypothetically join by more than one column name:
+fas_data = 
+  left_join(pup_data, litter_data, by = c("litter_number", "something_else")
 
 
+A left join and full join will NOT give you the same number of rows (we get two extra):
+```{r}
+full_join(pup_data, litter_data, by = "litter_number")
+```
 
 
